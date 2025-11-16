@@ -1,0 +1,61 @@
+import java.util.Scanner;
+public class BellmanFord {
+    private int dist[];
+    private int n;
+    public static final int MAX = 999;
+    public BellmanFord(int n) {
+        this.n = n;
+        dist = new int[n + 1];
+    }
+    public void evaluate(int src, int dest, int graph[][]) {
+        for (int i = 1; i <= n; i++) {
+            dist[i] = MAX;
+        }
+        dist[src] = 0;
+        for (int i = 1; i <= n - 1; i++) {
+            for (int u = 1; u <= n; u++) {
+                for (int v = 1; v <= n; v++) {
+                    if (graph[u][v] != MAX) {
+                        if (dist[v] > dist[u] + graph[u][v]) {
+                            dist[v] = dist[u] + graph[u][v];
+                        }
+                    }
+                }
+            }
+        }
+        for (int u = 1; u <= n; u++) {
+            for (int v = 1; v <= n; v++) {
+                if (graph[u][v] != MAX) {
+                    if (dist[v] > dist[u] + graph[u][v]) {
+                        System.out.println("Negative cycle detected");
+                        return;
+                    }
+                }
+            }
+        }
+        System.out.println("Shortest distance from " + src + " to " + dest + " is " + dist[dest]);
+    }
+    public static void main(String[] args) {
+        int n, src, dest;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter number of vertices:");
+        n = sc.nextInt();
+        int graph[][] = new int[n + 1][n + 1];
+
+        System.out.println("Enter adjacency matrix:");
+        for (int u = 1; u <= n; u++) {
+            for (int v = 1; v <= n; v++) {
+                graph[u][v] = sc.nextInt();
+                if (u == v) graph[u][v] = 0;
+                if (graph[u][v] == 0 && u != v) graph[u][v] = MAX;
+            }
+        }
+        System.out.println("Enter source vertex:");
+        src = sc.nextInt();
+        System.out.println("Enter destination vertex:");
+        dest = sc.nextInt();
+        BellmanFord bf = new BellmanFord(n);
+        bf.evaluate(src, dest, graph);
+        sc.close();
+    }
+}
