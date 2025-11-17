@@ -1,94 +1,98 @@
 import java.io.*;
-class crc {
-    public static void main(String a[]) throws IOException {
-        InputStreamReader isr = new InputStreamReader(System.in);
-        BufferedReader br = new BufferedReader(isr);
-        int[] message;
-        int[] gen;
-        int[] app_message;
-        int[] rem;
-        int[] trans_message;
-        int message_bits, gen_bits, total_bits;
-        System.out.println("\n Enter number of bits in message: ");
-        message_bits = Integer.parseInt(br.readLine());
-        message = new int[message_bits];
-        System.out.println("\n Enter message bits: ");
-        for (int i = 0; i < message_bits; i++)
-            message[i] = Integer.parseInt(br.readLine());
-        System.out.println("\n Enter number of bits in generator: ");
-        gen_bits = Integer.parseInt(br.readLine());
-        gen = new int[gen_bits];
-        System.out.println("\n Enter generator bits: ");
-        for (int i = 0; i < gen_bits; i++) {
+
+class CRC {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.print("Enter number of message bits: ");
+        int mb = Integer.parseInt(br.readLine());
+        int[] msg = new int[mb];
+
+        System.out.println("Enter message bits:");
+        for (int i = 0; i < mb; i++)
+            msg[i] = Integer.parseInt(br.readLine());
+
+        System.out.print("Enter number of generator bits: ");
+        int gb = Integer.parseInt(br.readLine());
+        int[] gen = new int[gb];
+
+        System.out.println("Enter generator bits:");
+        for (int i = 0; i < gb; i++)
             gen[i] = Integer.parseInt(br.readLine());
-        }
-        total_bits = message_bits + gen_bits - 1;
-        app_message = new int[total_bits];
-        rem = new int[total_bits];
-        trans_message = new int[total_bits];
-        for (int i = 0; i < message.length; i++) {
-            app_message[i] = message[i];
-        }
-        System.out.print("\n Message bits are: ");
-        for (int i = 0; i < message_bits; i++) {
-            System.out.print(message[i]);
-        }
-        System.out.print("\n Generator bits are: ");
-        for (int i = 0; i < gen_bits; i++) {
+
+        int tb = mb + gb - 1;
+        int[] app = new int[tb];
+        int[] rem = new int[tb];
+        int[] tx = new int[tb];
+
+        for (int i = 0; i < mb; i++)
+            app[i] = msg[i];
+
+        System.out.print("\nMessage: ");
+        for (int i = 0; i < mb; i++)
+            System.out.print(msg[i]);
+
+        System.out.print("\nGenerator: ");
+        for (int i = 0; i < gb; i++)
             System.out.print(gen[i]);
-        }
-        System.out.print("\n Appended message is: ");
-        for (int i = 0; i < app_message.length; i++) {
-            System.out.print(app_message[i]);
-        }
-        for (int j = 0; j < app_message.length; j++) {
-            rem[j] = app_message[j];
-        }
-        rem = computecrc(app_message, gen, rem);
-        for (int i = 0; i < app_message.length; i++) {
-            trans_message[i] = (app_message[i] ^ rem[i]);
-        }
-        System.out.println("\n Transmitted message from the transmitter is: ");
-        for (int i = 0; i < trans_message.length; i++) {
-            System.out.print(trans_message[i]);
-        }
-        System.out.println("\n Enter received message of " + total_bits + " bits at receiver end: ");
-        for (int i = 0; i < trans_message.length; i++) {
-            trans_message[i] = Integer.parseInt(br.readLine());
-        }
-        System.out.println("\n Received message is:");
-        for (int i = 0; i < trans_message.length; i++) {
-            System.out.print(trans_message[i]);
-        }
-        for (int j = 0; j < trans_message.length; j++) {
-            rem[j] = trans_message[j];
-        }
-        rem = computecrc(trans_message, gen, rem);
-        boolean errorFound = false;
-        for (int i = 0; i < rem.length; i++) {
+
+        System.out.print("\nAppended: ");
+        for (int i = 0; i < tb; i++)
+            System.out.print(app[i]);
+
+        for (int i = 0; i < tb; i++)
+            rem[i] = app[i];
+
+        rem = divide(app, gen, rem);
+
+        for (int i = 0; i < tb; i++)
+            tx[i] = app[i] ^ rem[i];
+
+        System.out.print("\nTransmitted message: ");
+        for (int i = 0; i < tb; i++)
+            System.out.print(tx[i]);
+
+        System.out.println("\n\nEnter received message (" + tb + " bits):");
+        for (int i = 0; i < tb; i++)
+            tx[i] = Integer.parseInt(br.readLine());
+
+        System.out.print("Received: ");
+        for (int i = 0; i < tb; i++)
+            System.out.print(tx[i]);
+
+        for (int i = 0; i < tb; i++)
+            rem[i] = tx[i];
+
+        rem = divide(tx, gen, rem);
+
+        boolean error = false;
+        for (int i = 0; i < tb; i++) {
             if (rem[i] != 0) {
-                System.out.println("\n There is Error in the received message!!!");
-                errorFound = true;
+                error = true;
                 break;
             }
         }
-        if (!errorFound) {
-            System.out.println("\n There is No Error in the received message!!!");
-        }
+
+        if (error)
+            System.out.println("\nError detected in received message!");
+        else
+            System.out.println("\nNo error in received message!");
     }
-    static int[] computecrc(int app_message[], int gen[], int rem[]) {
-        int current = 0;
+
+    static int[] divide(int[] a, int[] g, int[] r) {
+        int cur = 0;
+
         while (true) {
-            for (int i = 0; i < gen.length; i++) {
-                rem[current + i] = (rem[current + i] ^ gen[i]);
-            }
-            while (current < rem.length && rem[current] == 0) {
-                current++;
-            }
-            if ((rem.length - current) < gen.length) {
+            for (int i = 0; i < g.length; i++)
+                r[cur + i] ^= g[i];
+
+            while (cur < r.length && r[cur] == 0)
+                cur++;
+
+            if (r.length - cur < g.length)
                 break;
-            }
         }
-        return rem;
+
+        return r;
     }
 }
