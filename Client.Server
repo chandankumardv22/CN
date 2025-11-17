@@ -1,7 +1,7 @@
 import java.net.*;
 class datagram {
-    public static int serverPort = 666;
-    public static int clientPort = 999;
+    public static int serverPort = 6666;
+    public static int clientPort = 9999;
     public static int buffer_size = 1024;
     public static DatagramSocket ds;
     public static byte buffer[] = new byte[buffer_size];
