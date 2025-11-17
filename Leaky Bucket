@@ -44,8 +44,7 @@ while((out_bw<=temp)&&(rem_pkts>0))
 System.out.println("Data Sent \n" + (--rem_pkts) + " packets remaining"); 
 System.out.println("Remaining Bandwidth " + (temp -= out_bw)); 
 if((out_bw>temp)&&(rem_pkts>0)) 
-System.out.println(rem_pkts + " packet(s) discarded due to insufficient 
-bandwidth"); 
+System.out.println(rem_pkts + " packet(s) discarded due to insufficient bandwidth"); 
 } 
 } 
 } 
