@@ -1,51 +1,61 @@
-public class SlidingWindowProtocol {
-    private final int windowSize;
-    private int sendBase;
-    private int nextSeqNum;
-    public SlidingWindowProtocol(int windowSize) {
-        this.windowSize = windowSize;
-        this.sendBase = 0;
-        this.nextSeqNum = 0;
+public class SlidingWindow {
+    private final int win;
+    private int base;
+    private int next;
+
+    public SlidingWindow(int win) {
+        this.win = win;
+        this.base = 0;
+        this.next = 0;
     }
-    public void sendData(char[] data) {
-        while (nextSeqNum < sendBase + windowSize && nextSeqNum < data.length) {
-            Packet packet = createPacket(data[nextSeqNum]);
-            simulateSendPacket(packet);
-            nextSeqNum++;
+
+    public void send(char[] msg) {
+        while (next < base + win && next < msg.length) {
+            Frame f = makeFrame(msg[next]);
+            sendFrame(f);
+            next++;
         }
     }
-    public void receiveAck(int ackNum, char[] data) {
-        sendBase = ackNum + 1;
-        sendData(data);
+
+    public void ack(int num, char[] msg) {
+        base = num + 1;
+        send(msg);
     }
-    private Packet createPacket(char data) {
-        return new Packet(nextSeqNum, data);
+
+    private Frame makeFrame(char ch) {
+        return new Frame(next, ch);
     }
-    private void simulateSendPacket(Packet packet) {
-        System.out.println("Sending packet: " + packet);
+
+    private void sendFrame(Frame f) {
+        System.out.println("Sending: " + f);
     }
-    private void simulateAck(Packet packet, char[] data) {
-        System.out.println("Received ACK for packet: " + packet.seqNum);
-        receiveAck(packet.seqNum, data);
+
+    private void getAck(Frame f, char[] msg) {
+        System.out.println("ACK for: " + f.num);
+        ack(f.num, msg);
     }
-    private static class Packet {
-        private final int seqNum;
-        private final char data;
-        public Packet(int seqNum, char data) {
-            this.seqNum = seqNum;
-            this.data = data;
+
+    private static class Frame {
+        private final int num;
+        private final char ch;
+
+        public Frame(int num, char ch) {
+            this.num = num;
+            this.ch = ch;
         }
+
         public String toString() {
-            return "Packet{" + "seqNum=" + seqNum + ", data=" + data + '}';
+            return "Frame{" + "num=" + num + ", ch=" + ch + '}';
         }
     }
+
     public static void main(String[] args) {
-        char[] data = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
-        SlidingWindowProtocol swp = new SlidingWindowProtocol(4);
-        swp.sendData(data);
-        for (int ackNum = 0; ackNum < data.length; ackNum++) {
-            Packet ackPacket = new Packet(ackNum, data[ackNum]);
-            swp.simulateAck(ackPacket, data);
+        char[] msg = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
+        SlidingWindow sw = new SlidingWindow(4);
+        sw.send(msg);
+        for (int i = 0; i < msg.length; i++) {
+            Frame f = new Frame(i, msg[i]);
+            sw.getAck(f, msg);
         }
     }
 }
